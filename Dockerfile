@@ -1,20 +1,19 @@
-FROM debian:buster-slim as exe
+FROM debian:buster
 
+# expose ssh for client connection
 EXPOSE 22
 
 # install xpra
 ADD xpra_repo_gpg.asc .
-RUN cat xpra_repo_gpg.asc | apt-key add - \
+RUN apt-get update \
+    && apt-get install -y gnupg2 \
+    && cat xpra_repo_gpg.asc | apt-key add - \
+    && rm xpra_repo_gpg.asc \
     && echo "deb http://winswitch.org/ buster main" > /etc/apt/sources.list.d/winswitch.list \
-    && apt-get update
-RUN apt-get install xpra
+    && apt-get update \
+    && apt-get install -y xpra
 
-RUN mkdir ~/workspace
-WORKDIR /home/user/workspace
-
-# Tell debconf to run in non-interactive mode
-ENV DEBIAN_FRONTEND noninteractive
-
+# install vscode
 RUN apt-get update && apt-get install -y \
     apt-transport-https \
     ca-certificates \
@@ -27,6 +26,7 @@ RUN curl -sSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor 
 RUN echo "deb [arch=amd64] https://packages.microsoft.com/repos/vscode stable main" > /etc/apt/sources.list.d/vscode.list
 
 RUN apt-get update && apt-get -y install \
+    sudo \
     code \
     git \
     libasound2 \
@@ -53,4 +53,21 @@ RUN apt-get update && apt-get -y install \
     --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*
 
-CMD xpra start-desktop --start-child=code
+RUN apt-get update \
+    && apt-get install -y python-avahi python-uinput xserver-xorg xorg xinit jwm openssh-server
+
+RUN useradd -m -d /home/master/ -s /bin/bash -G sudo master \
+    && echo 'master:vscode' | chpasswd \
+    && mkdir /run/xpra && chown master /run/xpra \
+    && mkdir /run/user && chown master /run/user
+
+USER master
+
+RUN cd /run/user \
+    && mkdir ./1000 \
+    && mkdir ./1000/xpra
+
+WORKDIR /home/master/workspace
+
+# start a default xpra server
+CMD xpra start-desktop --daemon=no --start=code

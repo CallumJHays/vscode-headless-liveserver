@@ -21,7 +21,7 @@ Fetch, build and run the docker container in `tmux` on the headless liveserver (
 ```bash
 git clone https://github.com/CallumJHays/vscode-headless-liveserver-docker
 cd vscode-headless-liveserver-docker
-docker build -t vscode-headless-liveserver .
+docker build -t vscode .
 ```
 
 Then run the image:
@@ -29,13 +29,13 @@ Then run the image:
 A) In the console
 
 ```
-docker run -p 2020:22 vscode-headless-liveserver
+docker run -p 2020:22 vscode
 ```
 
 Or B) in the background:
 
 ```
-docker run -d -p 2020:22 vscode-headless-liveserver
+docker run -d -p 2022:22 vscode
 ```
 
 `xpra` running `vscode` in the docker container should now be waiting for X11-forwarding ssh connections. Make note of the IP of the host to which you can connect from the client.
