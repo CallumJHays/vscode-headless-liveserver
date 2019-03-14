@@ -27,4 +27,4 @@ then
 fi
 
 # connect to X11 desktop via xpra over ssh
-xpra attach ssh/vscode/100
+xpra attach ssh/vscode/2022 --ssh="ssh vscode"

@@ -54,15 +54,26 @@ RUN apt-get update && apt-get -y install \
     && rm -rf /var/lib/apt/lists/*
 
 RUN apt-get update \
-    && apt-get install -y python-avahi python-uinput xserver-xorg xorg xinit jwm openssh-server
+    && apt-get install -y \
+    python-avahi \
+    python-uinput \
+    xserver-xorg \
+    xorg \
+    xinit \
+    jwm \
+    openssh-server
 
 RUN useradd -m -d /home/master/ -s /bin/bash -G sudo master \
     && echo 'master:vscode' | chpasswd \
     && mkdir /run/xpra && chown master /run/xpra \
-    && mkdir /run/user && chown master /run/user
+    && mkdir /run/user && chown master /run/user \
+    && mkdir /run/sshd && /usr/sbin/sshd  \
+    && service ssh restart \
+    && /usr/bin/ssh-keygen -A
 
 USER master
 
+# create a bunch of folders that xpra needs but can't make itself
 RUN cd /run/user \
     && mkdir ./1000 \
     && mkdir ./1000/xpra
@@ -70,4 +81,4 @@ RUN cd /run/user \
 WORKDIR /home/master/workspace
 
 # start a default xpra server
-CMD xpra start-desktop --daemon=no --start=code
+CMD sudo echo service ssh status && xpra start-desktop :2022 --daemon=no --mdns=no --bind-tcp=0.0.0.0:2022 --start=code
